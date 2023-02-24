@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pasta 🍝</title>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                color-scheme: dark;
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                color-scheme: light;
+            }
+        }
+
+        .display-none {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="upload-page">
+        <h1>Files to upload:</h1>
+        <form id="upload-files-form" method="post" enctype="multipart/form-data">
+            <input type="file" name="files" id="files" multiple>
+            <input type="button" value="Upload" onclick="uploadFiles()">
+        </form>
+    </div>
+    <div id="success-page" class="display-none">
+        <h1>Success!</h1>
+        <button id="upload-more-button" onclick="resetPage()">Upload more</button>
+    </div>
+    <script>
+        function uploadFiles() {
+            if (document.getElementById('files').files.length === 0) {
+                return;
+            }
+
+            const form = document.getElementById("upload-files-form");
+            const formData = new FormData(form);
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "/upload", true);
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    console.log("File uploaded successfully");
+                    form.reset();
+                    document.getElementById("success-page").classList.remove('display-none');
+                    document.getElementById("upload-page").classList.add('display-none');
+                } else {
+                    console.log("File upload failed");
+                }
+            };
+            xhr.send(formData);
+        }
+
+        function resetPage() {
+            document.getElementById("success-page").classList.add('display-none');
+            document.getElementById("upload-page").classList.remove('display-none');
+        }
+    </script>
+</body>
+
+</html>
