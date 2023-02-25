@@ -14,3 +14,17 @@ For more information:
 ```sh
 $ pasta --help
 ```
+
+## Installation
+From source:
+```sh
+git clone https://github.com/idan22moral/pasta
+cd pasta
+go install
+```
+From release:
+```sh
+wget https://github.com/idan22moral/pasta/releases/download/v1.0.0/pasta-v1.0.0-linux.tar.gz
+tar -xzvf pasta-v1.0.0-linux.tar.gz
+mv linux/pasta /usr/local/bin/pasta
+```
