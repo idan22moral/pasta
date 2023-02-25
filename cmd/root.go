@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"net"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/idan22moral/pasta/internal"
@@ -92,6 +93,12 @@ var rootCmd = &cobra.Command{
 		}
 		fmt.Printf("Server available at: %s\n", serverURL)
 		fmt.Println("(available in all other interfaces too)")
+
+		uploadsDirAbs, err := filepath.Abs(uploadsDir)
+		if err != nil {
+			uploadsDirAbs = uploadsDir
+		}
+		fmt.Printf("Uploaded files will be stored at: %s\n", uploadsDirAbs)
 
 		<-exitSignal
 	},
