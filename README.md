@@ -12,7 +12,7 @@ Then, browse to the link on the other device (or scan the QR code to do that), a
 
 For more information:
 ```sh
-$ pasta --help
+pasta --help
 ```
 
 ## Installation
