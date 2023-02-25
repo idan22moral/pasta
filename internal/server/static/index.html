@@ -7,52 +7,100 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pasta 🍝</title>
     <style>
-        @media (prefers-color-scheme: dark) {
-            :root {
-                color-scheme: dark;
-            }
+        :root {
+            color-scheme: dark;
+            background-color: #26272e;
         }
 
-        @media (prefers-color-scheme: light) {
-            :root {
-                color-scheme: light;
-            }
+        html {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            height: 100%;
         }
 
         .display-none {
-            display: none;
+            display: none !important;
+        }
+
+        #upload-screen {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #upload-files-box {
+            height: 20%;
+            width: 20rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 3px #49a0fb dashed;
+            border-radius: 0.5rem;
+            background-color: #292c38;
+            box-shadow: 0px 0px 5px 0px #1b1d23
+        }
+
+        #upload-files-form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #files-label {
+            margin: 1.5rem;
+        }
+
+        #upload-button {
+            width: 80%;
+            height: 3rem;
+            border: 0px;
+            border-radius: 0.5rem;
+            background-color: #49a0fb;
         }
     </style>
 </head>
 
 <body>
-    <div id="upload-page">
-        <h1>Files to upload:</h1>
-        <form id="upload-files-form" method="post" enctype="multipart/form-data">
-            <input type="file" name="files" id="files" multiple>
-            <input type="button" value="Upload" onclick="uploadFiles()">
-        </form>
+    <div id="upload-screen">
+        <div id="upload-files-box" ondrop="handleDrop(event)" ondragover="handleDragOver(event)">
+            <form id="upload-files-form" method="post" enctype="multipart/form-data">
+                <label id="files-label" for="files">Click to choose files</label>
+                <input type="file" name="files" id="files" multiple style="display: none;" />
+            </form>
+            <input id="upload-button" type="button" value="Upload" onclick="uploadFiles()">
+        </div>
     </div>
-    <div id="success-page" class="display-none">
+    <div id="success-screen" class="display-none">
         <h1>Success!</h1>
         <button id="upload-more-button" onclick="resetPage()">Upload more</button>
     </div>
     <script>
+        let formData = new FormData();
+
         function uploadFiles() {
-            if (document.getElementById('files').files.length === 0) {
+            const filesInput = document.getElementById('files');
+            [...filesInput.files].map(f => formData.append('files', f));
+
+            if (formData.getAll('files').length === 0) {
                 return;
             }
 
-            const form = document.getElementById("upload-files-form");
-            const formData = new FormData(form);
             const xhr = new XMLHttpRequest();
             xhr.open("POST", "/upload", true);
             xhr.onload = () => {
                 if (xhr.status === 200) {
-                    console.log("File uploaded successfully");
-                    form.reset();
-                    document.getElementById("success-page").classList.remove('display-none');
-                    document.getElementById("upload-page").classList.add('display-none');
+                    formData = new FormData();
+                    document.getElementById("upload-files-form").reset();
+                    document.getElementById("success-screen").classList.remove('display-none');
+                    document.getElementById("upload-screen").classList.add('display-none');
                 } else {
                     console.log("File upload failed");
                 }
@@ -61,8 +109,26 @@
         }
 
         function resetPage() {
-            document.getElementById("success-page").classList.add('display-none');
-            document.getElementById("upload-page").classList.remove('display-none');
+            document.getElementById("success-screen").classList.add('display-none');
+            document.getElementById("upload-screen").classList.remove('display-none');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+
+            const dropItems = e.dataTransfer.items ?? e.dataTransfer.files;
+            const files = [...dropItems].map((item) => {
+                if (item.kind === 'file') {
+                    return item.getAsFile();
+                }
+                return null;
+            }).filter(Boolean);
+            console.log(files);
+            files.map(f => formData.append('files', f));
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
         }
     </script>
 </body>
