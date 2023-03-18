@@ -1,6 +1,7 @@
 package server
 
 import (
+	_ "embed"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,13 +11,12 @@ import (
 	"time"
 )
 
+//go:embed static/index.html
+var indexHTML []byte
+
 func RunServer(addr string, uploadsDir string) error {
 	http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
-		if req.URL.Path != "/" {
-			http.NotFound(res, req)
-			return
-		}
-		http.ServeFile(res, req, "./internal/server/static/index.html")
+		res.Write(indexHTML)
 	})
 
 	http.HandleFunc("/upload", func(res http.ResponseWriter, req *http.Request) {
