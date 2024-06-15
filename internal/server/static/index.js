@@ -39,6 +39,37 @@ function uploadFiles() {
     xhr.send(formData);
 }
 
+async function showExistingUploadsPage() {
+    showScreenById('existing-uploads-screen')
+    await loadExistingUploads();
+}
+
+async function loadExistingUploads() {
+    const existingUploadsListElement = document.getElementById('existing-uploads-list');
+    try {
+        const respose = await fetch('/existingUploads');
+        const existingUploads = await respose.json();
+
+        const itemNodes = existingUploads.map((upload) => {
+            const { name, path } = upload;
+            const a = document.createElement('a', );
+            a.href = path;
+            a.text = name;
+            return a;
+        })
+
+        if (itemNodes.length === 0) {
+            throw new Error("no existing uploads");
+        }
+
+        existingUploadsListElement.replaceChildren(...itemNodes);
+    }
+    catch (e) {
+        console.error(e);
+        existingUploadsListElement.replaceChildren("No existing uploads found.")
+    }
+}
+
 function handleDrop(e) {
     e.preventDefault();
 

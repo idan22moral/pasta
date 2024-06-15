@@ -30,6 +30,9 @@
                 onchange="updateLoadedFilesCount()" />
         </form>
         <input id="upload-button" class="pasta-button" type="button" value="Upload" onclick="uploadFiles()">
+        <div>
+            <input id="existing-uploads-button" class="pasta-button" type="button" value="view existing uploads" onclick="showExistingUploadsPage()" />
+        </div>
     </div>
     <div id="uploading-screen" class="display-none center-screen fill-main-section" data-type="screen">
         <h1>Uploading files...</h1>
@@ -39,6 +42,10 @@
         <button class="pasta-button" id="upload-more-button" onclick="showScreenById('upload-screen')">
             Upload more
         </button>
+    </div>
+    <div id="existing-uploads-screen" class="center-screen fill-main-section" data-type="screen">
+        <div id="existing-uploads-list"></div>
+        <input id="existing-uploads-back-button" class="pasta-button" type="button" value="Back" onclick="showScreenById('upload-screen')">
     </div>
     <script src="/static/index.js"></script>
 </body>

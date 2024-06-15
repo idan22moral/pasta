@@ -3,19 +3,35 @@ package server
 import (
 	"embed"
 	_ "embed"
+	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"path"
 	"path/filepath"
 	"time"
+
+	"github.com/google/uuid"
 )
+
+const SESSION_ID_COOKIE_NAME string = "deviceID"
+
+type FileUpload struct {
+	Path string `json:"path"`
+	Name string `json:"name"`
+}
 
 //go:embed static/*
 var staticFiles embed.FS
 
 func RunServer(addr string, uploadsDir string) error {
+	uploadsDirAbs, err := filepath.Abs(uploadsDir)
+	if err != nil {
+		return err
+	}
+
 	http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
 		if req.URL.Path != "/" {
 			http.NotFound(res, req)
@@ -85,6 +101,30 @@ func RunServer(addr string, uploadsDir string) error {
 			}
 		}
 	})
+
+	http.HandleFunc("/existingUploads", func(res http.ResponseWriter, req *http.Request) {
+		var filePaths []FileUpload
+		filepath.Walk(uploadsDirAbs, func(path string, info fs.FileInfo, err error) error {
+			if info.IsDir() {
+				return nil
+			}
+			relPath, err := filepath.Rel(uploadsDirAbs, path)
+			if err != nil {
+				fmt.Print(err)
+				return nil
+			}
+
+			fileUrl := filepath.Join("/existingUploads/", relPath)
+			fileUpload := FileUpload{Name: info.Name(), Path: fileUrl}
+			filePaths = append(filePaths, fileUpload)
+			return nil
+		})
+
+		res.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(res).Encode(filePaths)
+	})
+
+	http.Handle("/existingUploads/", http.StripPrefix("/existingUploads/", http.FileServer(http.Dir(uploadsDirAbs))))
 
 	return http.ListenAndServe(addr, nil)
 }
