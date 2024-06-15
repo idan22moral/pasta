@@ -1,6 +1,7 @@
 package server
 
 import (
+	"embed"
 	_ "embed"
 	"fmt"
 	"io"
@@ -11,13 +12,25 @@ import (
 	"time"
 )
 
-//go:embed static/index.html
-var indexHTML []byte
+//go:embed static/*
+var staticFiles embed.FS
 
 func RunServer(addr string, uploadsDir string) error {
 	http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
-		res.Write(indexHTML)
+		if req.URL.Path != "/" {
+			http.NotFound(res, req)
+			return
+		}
+
+		content, err := staticFiles.ReadFile("static/index.html")
+		if err != nil {
+			res.WriteHeader(http.StatusAccepted)
+			return
+		}
+		res.Write(content)
 	})
+
+	http.Handle("/static/", http.FileServer(http.FS(staticFiles)))
 
 	http.HandleFunc("/upload", func(res http.ResponseWriter, req *http.Request) {
 		err := req.ParseMultipartForm(32 << 20)
