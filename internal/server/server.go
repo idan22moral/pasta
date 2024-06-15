@@ -105,7 +105,7 @@ func RunServer(addr string, uploadsDir string) error {
 	http.HandleFunc("/existingUploads", func(res http.ResponseWriter, req *http.Request) {
 		var filePaths []FileUpload
 		filepath.Walk(uploadsDirAbs, func(path string, info fs.FileInfo, err error) error {
-			if info.IsDir() {
+			if err != nil || info.IsDir() {
 				return nil
 			}
 			relPath, err := filepath.Rel(uploadsDirAbs, path)
