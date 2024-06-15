@@ -40,7 +40,7 @@ func RunServer(addr string, uploadsDir string) error {
 
 		content, err := staticFiles.ReadFile("static/index.html")
 		if err != nil {
-			res.WriteHeader(http.StatusAccepted)
+			res.WriteHeader(http.StatusNotFound)
 			return
 		}
 		res.Write(content)
