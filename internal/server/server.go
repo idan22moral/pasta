@@ -5,18 +5,22 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"image/color"
 	"io"
 	"io/fs"
 	"net/http"
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/skip2/go-qrcode"
 )
 
 const SESSION_ID_COOKIE_NAME string = "deviceID"
+const DEFAULT_QR_IMAGE_SIZE = 64
+const MAX_QR_IMAGE_SIZE = 1024
 
 type FileUpload struct {
 	Path string `json:"path"`
@@ -26,7 +30,7 @@ type FileUpload struct {
 //go:embed static/*
 var staticFiles embed.FS
 
-func RunServer(addr string, uploadsDir string) error {
+func RunServer(addr string, uploadsDir string, qrcode *qrcode.QRCode) error {
 	uploadsDirAbs, err := filepath.Abs(uploadsDir)
 	if err != nil {
 		return err
@@ -125,6 +129,26 @@ func RunServer(addr string, uploadsDir string) error {
 	})
 
 	http.Handle("/existingUploads/", http.StripPrefix("/existingUploads/", http.FileServer(http.Dir(uploadsDirAbs))))
+	http.HandleFunc("/qr", func(res http.ResponseWriter, req *http.Request) {
+		requestImageSizeString := req.URL.Query().Get("size")
+		requestImageSize, err := strconv.ParseUint(requestImageSizeString, 10, 16)
+		if err != nil {
+			requestImageSize = DEFAULT_QR_IMAGE_SIZE
+		}
+
+		if requestImageSize > MAX_QR_IMAGE_SIZE {
+			requestImageSize = MAX_QR_IMAGE_SIZE
+		}
+		qrcode.BackgroundColor = color.Transparent
+		qrcode.ForegroundColor = color.White
+		imageBytes, err := qrcode.PNG(int(requestImageSize))
+		if err != nil {
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		res.Write(imageBytes)
+	})
 
 	return http.ListenAndServe(addr, nil)
 }

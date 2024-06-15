@@ -14,6 +14,7 @@ import (
 
 	"github.com/idan22moral/pasta/internal"
 	"github.com/idan22moral/pasta/internal/server"
+	"github.com/skip2/go-qrcode"
 	"github.com/spf13/cobra"
 )
 
@@ -68,13 +69,6 @@ var rootCmd = &cobra.Command{
 			return
 		}
 
-		serverAddrPort := fmt.Sprintf("%s:%s", serverAddr, serverPort)
-		exitSignal := make(chan interface{})
-		go func() {
-			server.RunServer(serverAddrPort, uploadsDir)
-			close(exitSignal)
-		}()
-
 		displayServerAddr := serverAddr
 		if serverAddr == defaultServerAddr {
 			primaryIP, err := getMyPrimaryIP()
@@ -86,11 +80,14 @@ var rootCmd = &cobra.Command{
 		}
 
 		serverURL := fmt.Sprintf("http://%s:%s/", displayServerAddr, serverPort)
-		err = internal.PrintQR(serverURL)
+
+		qrcode, err := qrcode.New(serverURL, qrcode.Low)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
+
+		internal.PrintQR(qrcode)
 		fmt.Printf("Server available at: %s\n", serverURL)
 		fmt.Println("(available in all other interfaces too)")
 
@@ -99,6 +96,13 @@ var rootCmd = &cobra.Command{
 			uploadsDirAbs = uploadsDir
 		}
 		fmt.Printf("Uploaded files will be stored at: %s\n", uploadsDirAbs)
+
+		serverAddrPort := fmt.Sprintf("%s:%s", serverAddr, serverPort)
+		exitSignal := make(chan interface{})
+		go func() {
+			server.RunServer(serverAddrPort, uploadsDir, qrcode)
+			close(exitSignal)
+		}()
 
 		<-exitSignal
 	},
